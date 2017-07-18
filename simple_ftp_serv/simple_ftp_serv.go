@@ -1,9 +1,9 @@
 /*
 	https://tools.ietf.org/html/rfc959
 
-	golang simple ftp server implement
-	study goals: basic syntax, file read write, socket, thread
-	2017.7.16  by ahui
+	golang simple ftp server implementation
+	2017.7.16 by ahui
+	learn goals: basic syntax, file read write, socket, thread
 */
 
 package main
