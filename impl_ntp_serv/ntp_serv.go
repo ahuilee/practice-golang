@@ -4,8 +4,7 @@
 	learn goals: udp, ntp protocol
 
 	references:
-
-
+	https://github.com/Tipoca/ntplib/blob/master/ntplib.py
 */
 package main
 
