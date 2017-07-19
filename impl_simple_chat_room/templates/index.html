@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title></title>
+</head>
+<body>
+
+	
+	<h1>Simple Chat Room</h1>	
+	
+	<form method="post" action="/join" enctype="multipart/form-data">
+		<div>
+			<label>暱稱</label>
+			<input type="text" name="nickname" />
+		</div>
+
+		<table>
+			<tr>
+				<td>Name</td>
+				<td></td>
+			</tr>
+			{{ range $i, $item := .rooms }}
+			
+			<tr>
+				<td>{{ $item.Name }}</td>
+				<td><button type="submit" name="key" value="{{ $item.Id }}" />加入</button></td>
+			</tr>
+		
+			{{ end }}	
+		</table>
+	
+	</form>
+	
+	
+</body>
+</html>

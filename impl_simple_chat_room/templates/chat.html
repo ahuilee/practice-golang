@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>{{ .room.Name }} | Simple Chat Room</title>
+	
+	<link rel="stylesheet" type="text/css" href="/static/css/chat.css"/>
+	<link rel="stylesheet" type="text/css" href="/static/js/jquery-palette-color-picker/palette-color-picker.css"/>
+	
+	<script type="text/javascript" src="/static/js/jquery-1.7.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.gracefulWebSocket.js"></script>
+	<script type="text/javascript" src="/static/js/jquery-palette-color-picker/palette-color-picker.js"></script>
+	
+	
+	<script type="text/javascript">	
+	
+	const COMMAND_AUTH = "AUTH";	
+	
+	function connectChat(options) {
+		var client = {
+			ws: null,
+			connect: function(url) {
+				client.ws = $.gracefulWebSocket(url);
+				client.ws.onmessage = this.onMessage;			
+			
+			},
+			onUserListChange: function(){},
+			onPacketReceived: function(packet) {
+			
+				//console.log("onPacketReceived length="+packet.length);
+				
+				var cmdName = packet[0];
+				switch(cmdName) {
+					case COMMAND_AUTH:
+						this.sendPacket(COMMAND_AUTH, options.room, options.key);
+					break;
+					case "DISPLAY_TEXT":
+						var msglist = $("#chat-box .messagelist");
+						msglist.append("<div>" + packet[1]  + "</div>");
+						msglist.animate({scrollTop: msglist.height() });
+					break;
+					case "USERLIST_CHANGED":
+						this.sendPacket("USERLIST");
+					break;
+					case "USERLIST":						
+						var userlist = JSON.parse(packet[1]);
+						this.onUserListChange(userlist);			
+						
+					break;
+					default:
+					break;
+				}
+				
+			
+			},
+			sendPacket: function(...args) {
+		
+				var jsonData = JSON.stringify(args);
+				
+				client.ws.send(jsonData);
+			},
+			
+			onMessage: function(evt) {
+			
+				var packet = $.parseJSON(evt.data);
+				console.log("packet=" + packet);
+				
+				
+				client.onPacketReceived(packet);
+			
+			}
+		
+		};
+		
+		client.connect(options.url);
+		
+		return client	
+	}
+	
+	$(function() {	
+	
+		var chatFrom = $("#chat-form");
+	
+		client = connectChat({url: "ws://{{ .hatServUrl }}", room: {{ .room.Id }}, key: {{ .user.Key }}});
+		
+		client.onUserListChange = function(userlist){
+		
+			console.log("userlist=" + userlist);
+		
+			$(".userlist-count").html(userlist.length);
+			var namelist = $("#userlist .namelist");
+			namelist.html("");
+			
+			for(i=0; i<userlist.length; i++) {
+				var userItem = userlist[i];
+				namelist.append('<li key="' + userItem.key + '">' + userItem.name + "</li>");
+			}
+					
+			$("#userlist .namelist li").click(function() {
+				var key = $(this).attr("key");
+				var name = $(this).html();
+				
+				var select = chatFrom.find("[name='target']");
+				if(select.children().length > 8){
+					select.children().first().remove();
+				}
+				if(select.find("[value='" + key + "'").length == 0){
+					select.append('<option value="' + key + '" >' + name + "</option>");
+				}
+				
+				select.val(key);
+				
+			});
+		};
+		
+		
+
+		chatFrom.submit(function() {
+		
+			var text = $(this).find("[name='text']").val();
+			if(text != "") {
+				var data = {
+					text: text,
+					color: $(this).find("[name='color']").val(),
+					target: $(this).find("[name='target']").val()
+				};
+				//var jsonData = JSON.stringify(data);
+				//alert("jsonData=" + jsonData);
+				client.sendPacket("TALK", data);
+				$(this).find("[name='text']").val('');
+			};
+			
+			
+			
+			return false;
+		});
+		
+		$("#talk-color").paletteColorPicker({
+		colors: [
+			"#ffffff",
+			"#ff0000",			
+			"#00ff00",
+			"#0000ff",
+			"#ff9900",
+		]
+		});
+		
+	});
+	</script>
+</head>
+<body>
+
+	<h1>{{ .room.Name }}</h1>
+	
+	<div class="chat-container">
+		
+		<div id="chat-box">
+			
+			<div class="messagelist">
+				
+			</div>
+			
+			<form id="chat-form" action="" method="post">	
+				<div>
+					<label>對象</label>
+					<select name="target">
+						<option value="0">全部</option>
+					</select>
+					
+					<input id="talk-color" type="text" name="color" value="#ffffff" />
+				</div>
+				<div>
+					<input id="chat-text" type="text" name="text"/>
+					<input type="submit" value="送出"/>
+				</div>
+				
+			</form>
+		</div>
+		
+		<div id="userlist">
+			<h2>在線名單(<span class="userlist-count"></span>)</h2>
+			<div class="namelist">				
+			</div>
+		</div>
+		
+	</div>
+	
+	
+	
+</body>
+</html>

@@ -1,0 +1,7 @@
+body{}
+.chat-container{position:relative;}
+#chat-box{margin:0 0 0 240px;width:720px;}
+#chat-box .messagelist{background:#000;color:#fff;overflow:scroll;padding:16px;height:480px;}
+#chat-text{width:720px;}
+#userlist{width:240px;color:#000;position:absolute;top:0px;left:0px;}
+#userlist .namelist{height:480px;background:#000;color:#fff;overflow:scroll;}
